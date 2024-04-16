@@ -16,4 +16,8 @@
 
 To make communication more natural, `An AI Based Psychological Entertaining System: Ikaros` uses advanced natural language processing techniques combined with text-to-speech systems that allow it to generate fluent responses such as Edge-TTS, bert_vits2, GPT_SoVITS. `An AI Based Psychological Entertaining System: Ikaros` combines a speech-to-text model or interface to enable native spoken conversations such as `Goole or faster-whisper`.
 
+<<<<<<< HEAD
 In addition, in order to provide users with a better entertainment experience, `An AI Based Psychological Entertaining System: Ikaros` has added interesting functions such as song ordering and daily fortune-telling.
+=======
+In addition, in order to provide users with a better entertainment experience, `An AI Based Psychological Entertaining System: Ikaros` has added interesting functions such as song ordering and daily fortune-telling.
+>>>>>>> 91216defa6f3a39b1e881a511c4b5272867c6424
