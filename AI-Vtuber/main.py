@@ -39,6 +39,12 @@ from utils.my_handle import My_handle
 
 """
 
+# @modifier Fan Zhang
+# @Modification time 2024/4/16
+# @Modify module audio_listen / do_listen_and_comment
+
+
+
 config = None
 common = None
 my_handle = None
@@ -184,11 +190,11 @@ def start_server():
             return 0
 
 
-    # THRESHOLD 设置音量阈值,默认值800.0,根据实际情况调整  silence_threshold 设置沉默阈值，根据实际情况调整
+    # THRESHOLD set the volume threshold, the default value is 800.0, adjust the silence_threshold set the silence threshold, adjust the actual situation
     def audio_listen(volume_threshold=800.0, silence_threshold=15):
         audio = pyaudio.PyAudio()
 
-        # 设置音频参数
+        # Setting audio parameters
         FORMAT = pyaudio.paInt16
         CHANNELS = 1
         RATE = 16000
@@ -203,25 +209,25 @@ def start_server():
             input_device_index=int(config.get("talk", "device_index"))
         )
 
-        frames = []  # 存储录制的音频帧
+        frames = []  # store
 
-        is_speaking = False  # 是否在说话
-        silent_count = 0  # 沉默计数
-        speaking_flag = False   #录入标志位 不重要
+        is_speaking = False  
+        silent_count = 0  
+        speaking_flag = False   
 
         while True:
-            # 播放中不录音
+            # No recording during playback
             if config.get("talk", "no_recording_during_playback"):
-                # 存在待合成音频 或 已合成音频还未播放 或 播放中 或 在数据处理中
+                # There is audio to be synthesized or synthesized audio has not been played or played or in data processing
                 if my_handle.is_audio_queue_empty() != 15 or my_handle.is_handle_empty() == 1:
                     time.sleep(float(config.get("talk", "no_recording_during_playback_sleep_interval")))
                     continue
                 
-            # 读取音频数据
+            # Reading audio data
             data = stream.read(CHUNK)
             audio_data = np.frombuffer(data, dtype=np.short)
             max_dB = np.max(audio_data)
-            # print(max_dB)
+
             if max_dB > volume_threshold:
                 is_speaking = True
                 silent_count = 0
@@ -231,13 +237,13 @@ def start_server():
             if is_speaking is True:
                 frames.append(data)
                 if speaking_flag is False:
-                    logging.info("[录入中……]")
+                    logging.info("[recording……]")
                     speaking_flag = True
 
             if silent_count >= silence_threshold:
                 break
 
-        logging.info("[语音录入完成]")
+        logging.info("[success]")
 
         # 将音频保存为WAV文件
         '''with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
@@ -248,28 +254,27 @@ def start_server():
         return frames
     
 
-    # 执行录音、识别&提交
+    # Perform recording, identification & submission
     def do_listen_and_comment(status=True):
         global stop_do_listen_and_comment_thread_event
 
         config = Config(config_path)
 
-        # 是否启用按键监听，不启用的话就不用执行了
         if False == config.get("talk", "key_listener_enable"):
             return
 
         while True:
             try:
-                # 检查是否收到停止事件
+                # Check if the stop event has been received
                 if stop_do_listen_and_comment_thread_event.is_set():
-                    logging.info(f'停止录音~')
+                    logging.info(f'STOP~')
                     break
 
                 config = Config(config_path)
             
-                # 根据接入的语音识别类型执行
+                # Performed according to the type of speech recognition accessed
                 if "baidu" == config.get("talk", "type"):
-                    # 设置音频参数
+
                     FORMAT = pyaudio.paInt16
                     CHANNELS = config.get("talk", "CHANNELS")
                     RATE = config.get("talk", "RATE")
@@ -281,33 +286,33 @@ def start_server():
                             audio_out_path = './' + audio_out_path
                     file_name = 'baidu_' + common.get_bj_time(4) + '.wav'
                     WAVE_OUTPUT_FILENAME = common.get_new_audio_path(audio_out_path, file_name)
-                    # WAVE_OUTPUT_FILENAME = './out/baidu_' + common.get_bj_time(4) + '.wav'
+
 
                     frames = audio_listen(config.get("talk", "volume_threshold"), config.get("talk", "silence_threshold"))
 
-                    # 将音频保存为WAV文件
+                    # Save audio as a WAV file
                     with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
                         wf.setnchannels(CHANNELS)
                         wf.setsampwidth(pyaudio.get_sample_size(FORMAT))
                         wf.setframerate(RATE)
                         wf.writeframes(b''.join(frames))
 
-                    # 读取音频文件
+                    # Reading audio files
                     with open(WAVE_OUTPUT_FILENAME, 'rb') as fp:
                         audio = fp.read()
 
-                    # 初始化 AipSpeech 对象
+                    # Initialize the AipSpeech object
                     baidu_client = AipSpeech(config.get("talk", "baidu", "app_id"), config.get("talk", "baidu", "api_key"), config.get("talk", "baidu", "secret_key"))
 
-                    # 识别音频文件
+                    # Recognizing Audio Files
                     res = baidu_client.asr(audio, 'wav', 16000, {
                         'dev_pid': 1536,
                     })
                     if res['err_no'] == 0:
                         content = res['result'][0]
 
-                        # 输出识别结果
-                        logging.info("识别结果：" + content)
+                        # Output recognition result
+                        logging.info("recognition result:" + content)
                         username = config.get("talk", "username")
 
                         data = {
@@ -335,7 +340,6 @@ def start_server():
                             content = r.recognize_google(audio, language=config.get("talk", "google", "tgt_lang"))
 
                             # 输出识别结果
-                            # logging.info("识别结果：" + content)
                             username = config.get("talk", "username")
 
                             data = {
